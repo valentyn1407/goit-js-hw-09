@@ -1,73 +1,69 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const options = {
-        enableTime: true,
-        time_24hr: true,
-        defaultDate: new Date(),
-        minuteIncrement: 1,
-        onClose(selectedDates) {
-            const selectedDate = selectedDates[0];
-            const currentDate = new Date();
-            
-            if (selectedDate <= currentDate) {
-                alert("Please choose a date in the future");
-            } else {
-                startButton.disabled = false;
-                countdown(selectedDate);
-            }
-        },
-    };
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.min.css";
 
-    const datetimePicker = document.getElementById("datetime-picker");
-    flatpickr(datetimePicker, options);
+const inputEl = document.querySelector("#datetime-picker");
+const startBtn = document.querySelector("[data-start]");
+const secEl = document.querySelector("[data-seconds]");
+const minEl = document.querySelector("[data-minutes]");
+const hourEl = document.querySelector("[data-hours]");
+const dayEl = document.querySelector("[data-days]");
 
-    const startButton = document.querySelector('[data-start]');
-    startButton.disabled = true;
-    startButton.addEventListener('click', () => {
-        const selectedDate = datetimePicker._flatpickr.selectedDates[0];
-        countdown(selectedDate);
-    });
+startBtn.disabled = true;
 
-    function countdown(endDate) {
-        const intervalId = setInterval(updateTimer, 1000);
-
-        function updateTimer() {
-            const currentDate = new Date();
-            const timeRemaining = endDate - currentDate;
-
-            if (timeRemaining <= 0) {
-                clearInterval(intervalId);
-                updateTimerDisplay(0, 0, 0, 0);
-                alert("Timer has ended!");
-                startButton.disabled = true;
-            } else {
-                const { days, hours, minutes, seconds } = convertMs(timeRemaining);
-                updateTimerDisplay(days, hours, minutes, seconds);
-            }
-        }
-
-        function updateTimerDisplay(days, hours, minutes, seconds) {
-            document.querySelector('[data-days]').textContent = padNumber(days);
-            document.querySelector('[data-hours]').textContent = padNumber(hours);
-            document.querySelector('[data-minutes]').textContent = padNumber(minutes);
-            document.querySelector('[data-seconds]').textContent = padNumber(seconds);
-        }
-
-        function padNumber(number) {
-            return number.toString().padStart(2, '0');
-        }
+const options = {
+  enableTime: true,
+  time_24hr: true,
+  defauldDate: new Date(),
+  minuteIncrement: 1,
+  onClose(selectedDates) {
+    if (selectedDates[0] <= new Date()) {
+      window.alert("Please choose a date in the future");
+      startBtn.setAttribute("disabled", "disabled");
+    } else {
+      startBtn.disabled = false;
     }
+  },
+};
+const fp = flatpickr(inputEl, options);
+let timerId = null;
 
-    function convertMs(ms) {
-        const second = 1000;
-        const minute = second * 60;
-        const hour = minute * 60;
-        const day = hour * 24;
+function convertMs(ms) {
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
 
-        const days = Math.floor(ms / day);
-        const hours = Math.floor((ms % day) / hour);
-        const minutes = Math.floor((ms % hour) / minute);
-        const seconds = Math.floor((ms % minute) / second);
+  const days = Math.floor(ms / day);
+  const hours = Math.floor((ms % day) / hour);
+  const minutes = Math.floor(((ms % day) % hour) / minute);
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
 
-        return { days, hours, minutes, seconds };
+  return { days, hours, minutes, seconds };
+};
+
+const addLeadingZero = (value) => {
+  return String(value).padStart(2, "0");
+};
+
+function fillFields(timeObj) {
+  dayEl.textContent = addLeadingZero(timeObj.days);
+  hourEl.textContent = addLeadingZero(timeObj.hours);
+  minEl.textContent = addLeadingZero(timeObj.minutes);
+  secEl.textContent = addLeadingZero(timeObj.seconds);
+};
+
+const countdown = () => {
+  const selectedDate = fp.selectedDates[0];
+  inputEl.disabled = true;
+  timerId = setInterval(() => {
+    const startTime = new Date();
+    const count = selectedDate - startTime;
+    fillFields(convertMs(count));
+    if (count < 1000) {
+      clearInterval(timerId);
+      inputEl.disabled = false;
     }
-});
+  }, 1000)
+};
+
+startBtn.addEventListener("click", countdown);
