@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const step = parseInt(form.querySelector('[name="step"]').value);
     const amount = parseInt(form.querySelector('[name="amount"]').value);
 
-    for (let i = 0; i <= amount; i++) {
+    for (let i = 1; i <= amount; i++) {
       await new Promise((resolve) => setTimeout(resolve, delay + (i - 1) * step));
       createPromise(i, delay)
         .then(({ position, delay }) => {
